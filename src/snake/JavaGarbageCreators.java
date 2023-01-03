@@ -32,12 +32,6 @@ public class JavaGarbageCreators {
 		init();
 
 		while (true) {
-			KeyEvent event = buffer.pop();
-			boolean firstKeyPress = false;
-			if (event.getID() != java.awt.event.KeyEvent.KEY_PRESSED || !firstKeyPress) {
-				firstKeyPress = !firstKeyPress;
-				continue;
-			}
 			// Cooldown vor dem nachsten Frame
 			controller.sleep(config.FRAME_LENGHT_MS);
 			// LED Board wird resetet
@@ -49,7 +43,7 @@ public class JavaGarbageCreators {
 			// warteschlagen stehen und man keine kontrolle ueber die Schlange hat
 			// Vielleicht kann man regulieren wie viele eingaben in dem buffer gleichzeitig
 			// drin sind?
-
+			KeyEvent event = buffer.pop();
 			while (event != null && event.getID() != java.awt.event.KeyEvent.KEY_PRESSED) {
 				event = buffer.pop();
 			}
