@@ -5,10 +5,12 @@ public class GameLogic {
 
 	private Snake snake;
 	private Apple apple;
+	private boolean gameStarted;
 
 	public GameLogic(Apple apple, Snake snake) {
 		this.apple = apple;
 		this.snake = snake;
+		this.gameStarted = false;
 	}
 
 	public boolean snakeIsHitSnake() {
@@ -72,6 +74,18 @@ public class GameLogic {
 			}
 		}
 		return availableCoords;
+	}
+
+	public boolean isGameStarted() {
+		return gameStarted;
+	}
+
+	public void startGame() {
+		this.gameStarted = true;
+	}
+
+	public void stopGame() {
+		this.gameStarted = false;
 	}
 
 }

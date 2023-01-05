@@ -26,14 +26,25 @@ public class JavaGarbageCreators {
 		pencil.drawAnObject(apple);
 		// Hintergrund um das Spielfeld besser zu sehen
 		controller.setBackgroundColor(0, 0, 50);
+		controller.updateBoard();
 	}
 
 	public static void main(String[] args) {
 		init();
-
 		while (true) {
 			// Cooldown vor dem nachsten Frame
 			controller.sleep(config.FRAME_LENGHT_MS);
+			KeyEvent event = buffer.pop();
+
+			// Das Spiel ist zu beginn gefroren bevor man eine taste drueckt
+			if (!gameLogic.isGameStarted()) {
+				if (event != null) {
+					gameLogic.startGame();
+				} else {
+					continue;
+				}
+			}
+
 			// LED Board wird resetet
 			controller.resetColors();
 
@@ -43,7 +54,7 @@ public class JavaGarbageCreators {
 			// warteschlagen stehen und man keine kontrolle ueber die Schlange hat
 			// Vielleicht kann man regulieren wie viele eingaben in dem buffer gleichzeitig
 			// drin sind?
-			KeyEvent event = buffer.pop();
+
 			while (event != null && event.getID() != java.awt.event.KeyEvent.KEY_PRESSED) {
 				event = buffer.pop();
 			}
