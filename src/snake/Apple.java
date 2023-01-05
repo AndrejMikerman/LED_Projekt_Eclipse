@@ -8,6 +8,7 @@ package snake;
  *
  */
 public class Apple extends BoardObject {
+	
 	private int age;
 
 	public Apple(int xPos, int yPos) {

@@ -5,12 +5,23 @@ public class GameLogic {
 
 	private Snake snake;
 	private Apple apple;
+	private SpeedBoost speedBoost;
+	private int frameLength;
 	private boolean gameStarted;
 
-	public GameLogic(Apple apple, Snake snake) {
+	public GameLogic(Apple apple, Snake snake, SpeedBoost speedBoost) {
 		this.apple = apple;
 		this.snake = snake;
-		this.gameStarted = false;
+		this.speedBoost = speedBoost;
+		setFrameLength(config.FRAME_LENGHT_MS);
+	}
+	
+	public int getFrameLength() {
+		return frameLength;
+	}
+	
+	public void setFrameLength(int frameLength) {
+		this.frameLength = frameLength;
 	}
 
 	public boolean snakeIsHitSnake() {
@@ -37,6 +48,13 @@ public class GameLogic {
 		// schlange isst ein apfel?
 		if (snake.getHead().getXPos() == apple.getXPos() && snake.getHead().getYPos() == apple.getYPos()) {
 			snake.startDigesting();
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean checkSnakeEatingSpeedBoost() {
+		if (snake.getHead().getXPos() == speedBoost.getXPos() && snake.getHead().getYPos() == speedBoost.getYPos()) {
 			return true;
 		}
 		return false;
@@ -79,13 +97,15 @@ public class GameLogic {
 	public boolean isGameStarted() {
 		return gameStarted;
 	}
-
+	
 	public void startGame() {
-		this.gameStarted = true;
+		gameStarted = true;
+	}
+	
+	public void stopGame() {
+		gameStarted = false;
 	}
 
-	public void stopGame() {
-		this.gameStarted = false;
-	}
+
 
 }

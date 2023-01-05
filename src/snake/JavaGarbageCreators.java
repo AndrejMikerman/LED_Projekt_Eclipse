@@ -1,7 +1,6 @@
 package snake;
 
 import java.awt.event.KeyEvent;
-
 import ledControl.BoardController;
 import ledControl.gui.KeyBuffer;
 
@@ -12,7 +11,8 @@ public class JavaGarbageCreators {
 	public static Apple apple;
 	public static Snake snake;
 	public static GameLogic gameLogic;
-
+	public static SpeedBoost speedBoost;
+	
 	public static void init() {
 		// Initialisierung der Objekte
 		controller = BoardController.getBoardController();
@@ -20,7 +20,8 @@ public class JavaGarbageCreators {
 		pencil = new Pencil(controller);
 		snake = new Snake(5, 5);
 		apple = new Apple((int) (Math.random() * 12), (int) (Math.random() * 12));
-		gameLogic = new GameLogic(apple, snake);
+		speedBoost = new SpeedBoost(0, 0);
+		gameLogic = new GameLogic(apple, snake, speedBoost);
 
 		pencil.drawSnake(snake);
 		pencil.drawAnObject(apple);
@@ -31,20 +32,18 @@ public class JavaGarbageCreators {
 
 	public static void main(String[] args) {
 		init();
+
 		while (true) {
 			// Cooldown vor dem nachsten Frame
-			controller.sleep(config.FRAME_LENGHT_MS);
+			controller.sleep(gameLogic.getFrameLength());
 			KeyEvent event = buffer.pop();
-
-			// Das Spiel ist zu beginn gefroren bevor man eine taste drueckt
-			if (!gameLogic.isGameStarted()) {
-				if (event != null) {
-					gameLogic.startGame();
-				} else {
-					continue;
-				}
-			}
-
+			 if (!gameLogic.isGameStarted()) {
+	                if (event != null) {
+	                    gameLogic.startGame();
+	                } else {
+	                    continue;
+	                }
+	            }
 			// LED Board wird resetet
 			controller.resetColors();
 
@@ -54,7 +53,9 @@ public class JavaGarbageCreators {
 			// warteschlagen stehen und man keine kontrolle ueber die Schlange hat
 			// Vielleicht kann man regulieren wie viele eingaben in dem buffer gleichzeitig
 			// drin sind?
-
+			
+			boolean firstEvent = false;
+			
 			while (event != null && event.getID() != java.awt.event.KeyEvent.KEY_PRESSED) {
 				event = buffer.pop();
 			}
@@ -88,18 +89,48 @@ public class JavaGarbageCreators {
 				default:
 					snake.moveOnePixel(snake.getFacingDirection());
 					break;
-
 				}
 
 			} else {
 				// default verhalten der Schlange bei keiner eingabe
 				snake.moveOnePixel(snake.getFacingDirection());
 			}
+			
 			// GAME STATE CHECK
 			if (gameLogic.snakeIsHitSnake() || gameLogic.snakeIsHitWall()) {
 				// ends Game
 				break;
 			}
+			
+			// SPEED BOOST
+			if ((int) (Math.random() * config.BOOST_PROBABILITY) == 0 && !speedBoost.isVisible() && !speedBoost.isActive()) {
+				int[][] availableCoords = gameLogic.getAvailableCoords();
+				speedBoost.setVisibility(true);
+				speedBoost.relocate(availableCoords[(int) (Math.random() * availableCoords.length)]);			
+			} else if (speedBoost.isVisible()){
+				speedBoost.increaseAge();
+				
+				if (gameLogic.checkSnakeEatingSpeedBoost()) {
+					//spielgeschwindigkeit wird erhöht
+					speedBoost.setActive(true);
+					gameLogic.setFrameLength((int)(config.FRAME_LENGHT_MS * ((int) (Math.random() * 2) == 0 ? 1.5 : 0.5)));
+					speedBoost.setVisibility(false);
+					speedBoost.resetAge();
+				} else if (speedBoost.getAge() > 12) {
+					speedBoost.setVisibility(false);
+					speedBoost.resetAge();
+				}
+			} else if (speedBoost.isActive()) {
+				if (speedBoost.getBoostTimer() != 0) {
+					speedBoost.boostCountdown();
+				} else {
+					speedBoost.resetBoostTimer();
+					speedBoost.setActive(false);
+					gameLogic.setFrameLength(config.FRAME_LENGHT_MS);
+				}
+				
+			}
+			
 			// APFEL COORDINATEN
 			if (apple.getAge() > config.APPLE_MAX_AGE || gameLogic.checkSnakeEatingApple()) {
 				int[][] availableCoords = gameLogic.getAvailableCoords();
@@ -113,6 +144,9 @@ public class JavaGarbageCreators {
 			// Alle Objekte werden auf dem board gemalt
 			pencil.drawSnake(snake);
 			pencil.drawAnObject(apple);
+			if (speedBoost.isVisible()) {				
+				pencil.drawAnObject(speedBoost);
+			}
 			// das board wird mit dem neuen array aktuallisiert
 			controller.updateBoard();
 		}

@@ -15,4 +15,7 @@ public class config {
 
 	public static final int FRAME_LENGHT_MS = 250;
 	public static final int APPLE_MAX_AGE = 100;
+	public static final int BOOST_TIMER = 25;
+	//lower value = higher probability
+	public static final int BOOST_PROBABILITY = 20;
 }
