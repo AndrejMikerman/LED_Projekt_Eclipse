@@ -4,11 +4,11 @@ package snake;
  * The Apple class is an BoardObject and represents the Apple in the Game. The
  * Apple has a cooldown that can be configured in the config class;
  * 
- * @author Andrej
+ * 
  *
  */
 public class Apple extends BoardObject {
-	
+
 	private int age;
 
 	public Apple(int xPos, int yPos) {

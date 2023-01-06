@@ -6,7 +6,7 @@ import ledControl.BoardController;
  * The Pencil Class is responsible for Drawing BoardObjects on the controller
  * board
  * 
- * @author Andrej
+ * 
  *
  */
 public class Pencil {

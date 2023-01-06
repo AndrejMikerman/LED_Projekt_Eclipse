@@ -4,6 +4,7 @@ public class Snake {
 	private SnakeBody snakeHead;
 	private config.Directions facingDirection;
 	private int length = 1;
+	private Poop snakePoop;
 
 	public Snake(int xPos, int yPos) {
 		snakeHead = new SnakeBody(xPos, yPos, 127, 127, 127);
@@ -83,11 +84,22 @@ public class Snake {
 			if (pointer.getNextBodyPart() == null && isFrontDigesting) {
 				pointer.setNextBody(new SnakeBody(xFrontBodyOldPos, yFrontBodyOldPos));
 				this.length++;
+				this.snakePoop = new Poop(xFrontBodyOldPos, yFrontBodyOldPos);
 				// wichtiger break sonst endlos schleife
 				break;
 			}
 
 		}
+	}
+
+	public Poop getPoop() {
+		Poop returnPoop = this.snakePoop;
+		this.snakePoop = null;
+		return returnPoop;
+	}
+
+	public boolean hasPoop() {
+		return this.snakePoop != null;
 	}
 
 	public void moveOnePixel(config.Directions direction) {

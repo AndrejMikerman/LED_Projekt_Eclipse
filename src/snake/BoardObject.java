@@ -4,12 +4,14 @@ package snake;
  * This class represents a single LED pixel on the LED Board. Each BoardObject
  * has x and y coordinates and a color value;
  * 
- * @author Andrej
+ * 
  *
  */
 public class BoardObject {
 	protected int xPosition, yPosition;
-	// index: 0 = red, 1 = green, 2 = blue;
+	/**
+	 * index: 0 = red, 1 = green, 2 = blue;
+	 */
 	protected int[] colours = new int[3];
 
 	public BoardObject(int xPos, int yPos) {
