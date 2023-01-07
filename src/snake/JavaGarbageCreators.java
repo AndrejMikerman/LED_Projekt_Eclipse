@@ -2,9 +2,30 @@ package snake;
 
 import java.awt.event.KeyEvent;
 import ledControl.BoardController;
+import ledControl.LedConfiguration;
 import ledControl.gui.KeyBuffer;
 import java.util.ArrayList;
 
+import javax.net.ssl.SNIServerName;
+
+/**
+ * This is the Game of Snake. <br>
+ * It Works just like a typical Snake Game, but with few modifications. <br>
+ * Your target is to collect as much Apples as possible, before eventually
+ * crashing into something. In the end you will see your Score. <br>
+ * <br>
+ * Objects in the Game:<br>
+ * Apple: you need to collect those for points<br>
+ * Poop: Snake leaves trails of poop, when its done digesting the apple. Be
+ * careful not to step on it<br>
+ * Speed Boost: has a 50/50 chance of slowing or increase the game speed<br>
+ * <br>
+ * An apple counts as 1 point. When you eat an Apple while the Speed Boost is
+ * Active you earn 2 Points
+ * 
+ * @author JavaGarbageCreators
+ *
+ */
 public class JavaGarbageCreators {
 	public static BoardController controller;
 	public static KeyBuffer buffer;
@@ -21,21 +42,25 @@ public class JavaGarbageCreators {
 		buffer = controller.getKeyBuffer();
 		pencil = new Pencil(controller);
 		snake = new Snake(5, 5);
-		apple = new Apple((int) (Math.random() * 12), (int) (Math.random() * 12));
+		apple = new Apple(0, 0);
 		speedBoost = new SpeedBoost(0, 0);
 		poopQueue = new ArrayList<Poop>();
 		gameLogic = new GameLogic(apple, snake, speedBoost, poopQueue);
 
+		// Apfel wird plaziert
+		int[][] availableCoords = gameLogic.getAvailableCoords();
+		apple.relocate(availableCoords[(int) (Math.random() * availableCoords.length)]);
+
+		// erstes zeichnen der Objekte
 		pencil.drawSnake(snake);
 		pencil.drawAnObject(apple);
-		// Hintergrund um das Spielfeld besser zu sehen
-		controller.setBackgroundColor(0, 0, 50);
 		controller.updateBoard();
 	}
 
-	public static void main(String[] args) {
-		init();
-
+	/**
+	 * The Snake Game loop
+	 */
+	public static void Game() {
 		while (true) {
 			// Cooldown vor dem nachsten Frame
 			controller.sleep(gameLogic.getFrameLength());
@@ -43,14 +68,12 @@ public class JavaGarbageCreators {
 			KeyEvent event = buffer.pop();
 			// Start Situation: Das spiel ist gefroren sonlange keine taste gedrueckt wurde
 			if (!gameLogic.isGameStarted()) {
-				if (event != null) {
+				if (event != null && event.getID() == java.awt.event.KeyEvent.KEY_PRESSED) {
 					gameLogic.startGame();
 				} else {
 					continue;
 				}
 			}
-			// LED Board wird resetet
-			controller.resetColors();
 
 			// ich brauche nur KEY_PRESSED Events oder null events; Alles andere wird
 			// ignoriert
@@ -61,133 +84,23 @@ public class JavaGarbageCreators {
 			while (event != null && event.getID() != java.awt.event.KeyEvent.KEY_PRESSED) {
 				event = buffer.pop();
 			}
-
-			// SCHLANGE COORDINATEN
-
-			// bewegt die schlange falls eine eingabe passiert ist
-			if (event != null) {
-				// die Schlange verandert ihre coordinaten in in Abhangigkeit von der Eingabe
-
-				boolean doDefault = false;
-				switch (event.getKeyCode()) {
-				case java.awt.event.KeyEvent.VK_UP:
-					if (snake.getFacingDirection() != config.Directions.DOWN) {
-						snake.moveOnePixel(config.Directions.UP);
-						break;
-					} else {
-						doDefault = true;
-						break;
-					}
-				case java.awt.event.KeyEvent.VK_DOWN:
-					if (snake.getFacingDirection() != config.Directions.UP) {
-						snake.moveOnePixel(config.Directions.DOWN);
-						break;
-					} else {
-						doDefault = true;
-						break;
-					}
-				case java.awt.event.KeyEvent.VK_RIGHT:
-					if (snake.getFacingDirection() != config.Directions.LEFT) {
-						snake.moveOnePixel(config.Directions.RIGHT);
-						break;
-					} else {
-						doDefault = true;
-						break;
-					}
-				case java.awt.event.KeyEvent.VK_LEFT:
-					if (snake.getFacingDirection() != config.Directions.RIGHT) {
-						snake.moveOnePixel(config.Directions.LEFT);
-						break;
-					} else {
-						doDefault = true;
-						break;
-					}
-				}
-				if (doDefault) {
-					snake.moveOnePixel(snake.getFacingDirection());
-				}
-
-			} else {
-				// default verhalten der Schlange bei keiner eingabe
-				snake.moveOnePixel(snake.getFacingDirection());
-			}
-
+			// SCHLANGE BEWEGUNG
+			boolean snakeMovementSuccessful = gameLogic.gameSnakeMovement(event);
 			// GAME STATE CHECK
-			if (gameLogic.snakeIsHitSnake() || gameLogic.snakeIsHitWall() || gameLogic.snakeIsHitPoop()) {
+			if (!snakeMovementSuccessful) {
 				// ends Game
+				gameLogic.stopGame();
 				break;
 			}
 			// POOP
-
-			// decays Poop
-			for (Poop poop : poopQueue) {
-				poop.decay();
-			}
-			// removes the dacayed Poop
-			if (!poopQueue.isEmpty() && poopQueue.get(0).getCurrentDecayTime() <= 0) {
-				poopQueue.remove(0);
-			}
-
-			// adds new Poop
-			if (snake.hasPoop()) {
-				poopQueue.add(snake.getPoop());
-			}
-
+			gameLogic.gameCheckupPoop();
 			// SPEED BOOST
-
-			// 1 Fall Speedboost ist Inaktiv und Nicht Sichtbar und der Zuffal tritt ein
-			if ((int) (Math.random() * config.BOOST_PROBABILITY) == 0 && !speedBoost.isVisible()
-					&& !speedBoost.isActive()) {
-				// SpeedBoost erhaelt eine der verfuergbaren koordinaten und wird sichtbar
-				int[][] availableCoords = gameLogic.getAvailableCoords();
-				speedBoost.show();
-				speedBoost.relocate(availableCoords[(int) (Math.random() * availableCoords.length)]);
-			}
-			// 2 Fall SpeedBoost ist sichtbar auf dem Feld
-			else if (speedBoost.isVisible()) {
-				// wenn die schlage den Boost isst, wird dieser aktiviert,versteckt und die
-				// Spielgeschwindlichkeit wird zufaallig schneller oder langsammer
-				if (gameLogic.isSnakeEatingSpeedBoost()) {
-					speedBoost.setActive(true);
-					gameLogic.setFrameLength((int) (config.FRAME_LENGHT_MS
-							* ((int) (Math.random() * 2) == 0 ? config.BOOST_SPEED_DOWN_MULTIPLICATOR
-									: config.BOOST_SPEED_UP_MULTIPLICATOR)));
-					speedBoost.hide();
-				}
-				// der Boost wird versteckt wenn er zu lange auf dem feld ist
-				else if (speedBoost.getAge() > config.BOOST_MAX_AGE) {
-					speedBoost.hide();
-				} else {
-					speedBoost.increaseAge();
-				}
-			}
-			// 3 Fall SpeedBoost ist aktiv
-			else if (speedBoost.isActive()) {
-				// Der SpeedBoost hat einen timer der hier runtergezahlt wird. Wenn der timer
-				// abgelaufen ist wird der Boost deaktiviert und die ausgangs
-				// Spielgeschwindlichkeit wird hergestellt
-				if (speedBoost.getBoostTimer() > 0) {
-					speedBoost.boostCountdown();
-				} else {
-					speedBoost.resetBoostTimer();
-					speedBoost.setActive(false);
-					gameLogic.setFrameLength(config.FRAME_LENGHT_MS);
-				}
-
-			}
-
+			gameLogic.gameCheckupSpeedBoost();
 			// APFEL COORDINATEN
-			if (apple.getAge() > config.APPLE_MAX_AGE || gameLogic.isSnakeEatingApple()) {
-				if (gameLogic.isSnakeEatingApple()) {
-					snake.startDigesting();
-				}
-				int[][] availableCoords = gameLogic.getAvailableCoords();
-				// choose randomly from one of the available coords
-				apple.relocate(availableCoords[(int) (Math.random() * availableCoords.length)]);
-			} else {
-				apple.increaseAge();
-			}
+			gameLogic.gameCheckupApple();
 
+			// LED Board wird resetet
+			controller.resetColors();
 			// soll am ende des loops passieren
 			// Alle Objekte werden auf dem board gemalt
 			pencil.drawSnake(snake);
@@ -195,13 +108,68 @@ public class JavaGarbageCreators {
 			if (speedBoost.isVisible()) {
 				pencil.drawAnObject(speedBoost);
 			}
-			for (Poop poop : poopQueue) {
-				if (poop.getCurrentDecayTime() < config.POOP_DECAY_TIME) {
-					pencil.drawAnObject(poop);
-				}
-			}
+			pencil.drawPoop(poopQueue);
 			// das board wird mit dem neuen array aktuallisiert
 			controller.updateBoard();
 		}
+	}
+
+	public static void updateScoreScreen(config.Directions snakeMovingDirection) {
+		controller.resetColors();
+		snake.moveOnePixel(snakeMovingDirection);
+		pencil.drawSnake(snake);
+		pencil.drawSnakeScoreBox();
+		pencil.drawScore(gameLogic.getScore());
+		controller.updateBoard();
+	}
+
+	/**
+	 * Draws the Score Screen with an animation at the top and a score at the bottom
+	 */
+	public static void scoreScreen() {
+		controller.resetColors();
+		snake = new Snake(10, 1);
+		pencil.drawSnake(snake);
+		System.out.println(gameLogic.getScore());
+		// schlange auf dem bildschirm laufen lassen
+		int x = 0;
+		int y = 0;
+		KeyEvent event = buffer.pop();
+		// do while is important so the player has time to see his score
+		do {
+			for (; x < 9; x++) {
+				updateScoreScreen(config.Directions.LEFT);
+			}
+			for (; y < 2; y++) {
+				updateScoreScreen(config.Directions.DOWN);
+			}
+			for (; x > 0; x--) {
+				updateScoreScreen(config.Directions.RIGHT);
+			}
+			for (; y > 0; y--) {
+				updateScoreScreen(config.Directions.UP);
+			}
+			event = buffer.pop();
+
+		} while (event == null);
+		// to prevent the game to start right after the score screen
+		buffer.clear();
+	}
+
+	public static void main(String[] args) {
+		while (true) {
+			///////// Initial State of the Game////////////
+			init();
+			///////// The Game/////////////////////////////
+			Game();
+			////////////// Snake Blinks////////////////////
+			pencil.blinkSnake(snake, 5, 150, config.RED_COLOR_RGB(), config.WHITE_COLOR_RGB());
+			buffer.clear();
+			///////////// Go to Score Screen///////////////
+			scoreScreen();
+			///////////////////////////////////////////////
+			controller.resetColors();
+		}
+
 	}
 }

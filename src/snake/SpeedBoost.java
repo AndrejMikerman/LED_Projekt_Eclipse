@@ -18,7 +18,7 @@ public class SpeedBoost extends BoardObject {
 		visible = false;
 		active = false;
 		boostTimer = config.BOOST_TIMER;
-		this.colours[2] = 127;
+		this.colors = config.SPEED_BOOST_COLOR_RGB();
 	}
 
 	/**

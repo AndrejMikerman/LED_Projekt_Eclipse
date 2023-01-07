@@ -14,9 +14,14 @@ public class Apple extends BoardObject {
 	public Apple(int xPos, int yPos) {
 		super(xPos, yPos);
 		age = 0;
-		this.colours[0] = 127;
+		this.colors = config.APPLE_COLOR_RGB();
 	}
 
+	/**
+	 * Return age of the apple
+	 * 
+	 * @return a positive int
+	 */
 	public int getAge() {
 		return age;
 	}

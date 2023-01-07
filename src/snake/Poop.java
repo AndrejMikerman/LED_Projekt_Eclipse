@@ -11,9 +11,7 @@ public class Poop extends BoardObject {
 
 	public Poop(int xPos, int yPos) {
 		super(xPos, yPos);
-		colours[0] = 127;
-		colours[1] = 59;
-		colours[2] = 0;
+		colors = config.POOP_COLOR_RGB();
 		this.decayTime = config.POOP_DECAY_TIME;
 	}
 
@@ -21,8 +19,8 @@ public class Poop extends BoardObject {
 	 * Decays the Poop by 1 and dimmers its colors
 	 */
 	public void decay() {
-		colours[0] = (int) (127 * (double) decayTime / config.POOP_DECAY_TIME);
-		colours[1] = (int) (59 * (double) decayTime / config.POOP_DECAY_TIME);
+		colors[0] = (int) (127 * (double) decayTime / config.POOP_DECAY_TIME);
+		colors[1] = (int) (59 * (double) decayTime / config.POOP_DECAY_TIME);
 		decayTime--;
 	}
 

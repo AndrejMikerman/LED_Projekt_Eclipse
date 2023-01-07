@@ -7,16 +7,14 @@ public class SnakeBody extends BoardObject {
 	public SnakeBody(int xPos, int yPos) {
 		super(xPos, yPos);
 		// green by default
-		this.colours[0] = 0;
-		this.colours[1] = 127;
-		this.colours[2] = 0;
+		this.colors = config.SNAKE_BODY_COLOR_RGB();
 	}
 
-	public SnakeBody(int xPos, int yPos, int red, int green, int blue) {
+	public SnakeBody(int xPos, int yPos, int[] colors) {
 		super(xPos, yPos);
-		this.colours[0] = red;
-		this.colours[1] = green;
-		this.colours[2] = blue;
+		this.colors[0] = colors[0];
+		this.colors[1] = colors[1];
+		this.colors[2] = colors[2];
 	}
 
 	public SnakeBody getNextBodyPart() {
@@ -27,21 +25,38 @@ public class SnakeBody extends BoardObject {
 		this.nextBody = nextBody;
 	}
 
-	// Koerperteile die Verdauen sind Gelb, auser dem Kopf
+	/**
+	 * BodyPart starts digesting and changes it's color to digesting color. <br>
+	 * If isHead is true does not change it's color
+	 * 
+	 * @param isHead Set to true if BodyPart is Head. Otherwise leave it false.
+	 */
 	public void startDigesting(boolean isHead) {
 		if (!isHead) {
-			this.setColor(127, 127, 20);
+			this.setColors(config.SNAKE_BODY_DIGESTING_COLOR_RGB());
 		}
 		this.isDigesting = true;
 	}
 
+	/**
+	 * BodyPart stops digesting and changes it's color to default body part color.
+	 * <br>
+	 * If isHead is true does not change it's color
+	 * 
+	 * @param isHead Set to true if BodyPart is Head. Otherwise leave it false.
+	 */
 	public void stopDigesting(boolean isHead) {
 		if (!isHead) {
-			this.setColor(0, 127, 0);
+			this.setColors(config.SNAKE_BODY_COLOR_RGB());
 		}
 		this.isDigesting = false;
 	}
 
+	/**
+	 * Returns the digesting state of the Body Part
+	 * 
+	 * @return digesting state true/false
+	 */
 	public boolean isDigesting() {
 		return this.isDigesting;
 	}
